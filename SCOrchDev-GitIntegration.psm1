@@ -367,8 +367,8 @@ Function Find-GitRepositoryChange
     $ReturnObj = @{ 'CurrentCommit' = $RepositoryInformation.CurrentCommit;
                     'Files' = @() }
     
-    $NewCommit = (git rev-parse --short HEAD)
-    $ModifiedFiles = git diff --name-status (Select-FirstValid -Value $RepositoryInformation.CurrentCommit, (git rev-list --max-parents=0 HEAD) -FilterScript { $_ -ne -1 }) $NewCommit
+    $NewCommit = (git.exe rev-parse --short HEAD)
+    $ModifiedFiles = git.exe diff --name-status (Select-FirstValid -Value $RepositoryInformation.CurrentCommit, (git.exe rev-list --max-parents=0 HEAD) -FilterScript { $_ -ne -1 }) $NewCommit
     $ReturnObj = @{ 'CurrentCommit' = $NewCommit ; 'Files' = @() }
     Foreach($File in $ModifiedFiles)
     {
