@@ -261,7 +261,7 @@ Function Group-RepositoryFile
             {
                 foreach($Path in $SettingsFiles."$SettingsFileName".FullPath)
                 {
-                    if($Path -like "$($RepositoryInformation.Path)\$($RepositoryInformation.RunbookFolder)\*")
+                    if($Path -like "$($RepositoryInformation.Path)\$($RepositoryInformation.GlobalsFolder)\*")
                     {
                         $ReturnObj.CleanAssets = $True
                         $ReturnObj.SettingsFiles += $Path
@@ -362,8 +362,9 @@ Function Find-GitRepositoryChange
     $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
     
     # Set current directory to the git repo location
+    $CurrentLocation = Get-Location
     Set-Location $RepositoryInformation.Path
-      
+
     $ReturnObj = @{ 'CurrentCommit' = $RepositoryInformation.CurrentCommit;
                     'Files' = @() }
     
@@ -380,6 +381,8 @@ Function Find-GitRepositoryChange
                                    'ChangeType' = $Matches[1] }
         }
     }
+
+    Set-Location $CurrentLocation
     
     return (ConvertTo-Json $ReturnObj -Compress)
 }
@@ -410,6 +413,7 @@ Function Update-GitRepository
         }
         
     }
+    $CurrentLocation = Get-Location
     Set-Location $RepositoryInformation.Path
       
     if(-not ("$(git.exe branch)" -match '\*\s(\w+)'))
@@ -447,5 +451,6 @@ Function Update-GitRepository
     {
         Write-Exception -Exception $_ -Stream Warning
     }
+    Set-Location -Path $CurrentLocation
 }
 Export-ModuleMember -Function * -Verbose:$false -Debug:$False
