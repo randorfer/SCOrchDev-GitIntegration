@@ -20,7 +20,7 @@ Function New-ChangesetTagLine
           [Parameter(Mandatory=$true)][string]  $RepositoryName)
 
     $NewVersion = $False
-    if($TagLine -match 'CurrentCommit:([^;]+);')
+    if(($TagLine -as [string]) -match 'CurrentCommit:([^;]+);')
     {
         if($Matches[1] -ne $CurrentCommit)
         {
@@ -34,7 +34,7 @@ Function New-ChangesetTagLine
         $TagLine = "CurrentCommit:$($CurrentCommit);$($TagLine)"
         $NewVersion = $True
     }
-    if($TagLine -match 'RepositoryName:([^;]+);')
+    if(($TagLine -as [string]) -match 'RepositoryName:([^;]+);')
     {
         if($Matches[1] -ne $RepositoryName)
         {
