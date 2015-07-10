@@ -1,4 +1,6 @@
-﻿<#
+﻿$gitEXE = "$($PSScriptRoot)\git\bin\git.exe"
+
+<#
     .Synopsis
         Tags a current tag line and compares it to the passed
         commit and repository. If the commit is not the same
@@ -363,26 +365,37 @@ Function Find-GitRepositoryChange
     
     # Set current directory to the git repo location
     $CurrentLocation = Get-Location
-    Set-Location $RepositoryInformation.Path
-
-    $ReturnObj = @{ 'CurrentCommit' = $RepositoryInformation.CurrentCommit;
-                    'Files' = @() }
-    
-    $NewCommit = (git.exe rev-parse --short HEAD)
-    $ModifiedFiles = git.exe diff --name-status (Select-FirstValid -Value $RepositoryInformation.CurrentCommit, (git.exe rev-list --max-parents=0 HEAD) -FilterScript { $_ -ne -1 }) $NewCommit
-    $ReturnObj = @{ 'CurrentCommit' = $NewCommit ; 'Files' = @() }
-    Foreach($File in $ModifiedFiles)
+    try
     {
-        if("$($File)" -Match '([a-zA-Z])\s+(.+\/([^\./]+(\..+)))$')
+        Set-Location $RepositoryInformation.Path
+
+        $ReturnObj = @{ 'CurrentCommit' = $RepositoryInformation.CurrentCommit;
+                        'Files' = @() }
+    
+        $NewCommit = (Invoke-Expression -Command "$($gitExe) rev-parse --short HEAD") -as  [string]
+        $FirstRepoCommit = (Invoke-Expression -Command "$($gitExe) rev-list --max-parents=0 HEAD") -as [string]
+        $StartCommit = (Select-FirstValid -Value $RepositoryInformation.CurrentCommit, $FirstRepoCommit -FilterScript { $_ -ne -1 }) -as [string]
+        $ModifiedFiles = Invoke-Expression -Command "$($gitExe) diff --name-status $StartCommit $NewCommit"
+        $ReturnObj = @{ 'CurrentCommit' = $NewCommit ; 'Files' = @() }
+        Foreach($File in $ModifiedFiles)
         {
-            $ReturnObj.Files += @{ 'FullPath' = "$($RepositoryInformation.Path)\$($Matches[2].Replace('/','\'))" ;
-                                   'FileName' = $Matches[3] ;
-                                   'FileExtension' = $Matches[4].ToLower()
-                                   'ChangeType' = $Matches[1] }
+            if("$($File)" -Match '([a-zA-Z])\s+(.+\/([^\./]+(\..+)))$')
+            {
+                $ReturnObj.Files += @{ 'FullPath' = "$($RepositoryInformation.Path)\$($Matches[2].Replace('/','\'))" ;
+                                       'FileName' = $Matches[3] ;
+                                       'FileExtension' = $Matches[4].ToLower()
+                                       'ChangeType' = $Matches[1] }
+            }
         }
     }
-
-    Set-Location $CurrentLocation
+    catch
+    {
+        throw
+    }
+    finally
+    {
+        Set-Location $CurrentLocation
+    }
     
     return (ConvertTo-Json $ReturnObj -Compress)
 }
@@ -405,7 +418,7 @@ Function Update-GitRepository
         $ParentDirectory = New-FileItemContainer -FileItemPath $RepositoryInformation.Path
         Try
         {
-            git.exe clone "$($RepositoryInformation.RepositoryPath)" "$($RepositoryInformation.Path)" --recursive
+            Invoke-Expression -Command "$gitEXE clone $($RepositoryInformation.RepositoryPath) $($RepositoryInformation.Path) --recursive"
         }
         Catch
         {
@@ -415,10 +428,11 @@ Function Update-GitRepository
     }
     $CurrentLocation = Get-Location
     Set-Location $RepositoryInformation.Path
-      
-    if(-not ("$(git.exe branch)" -match '\*\s(\w+)'))
+
+    $BranchResults = (Invoke-Expression "$gitEXE branch") -as [string]
+    if(-not ($BranchResults -match '\*\s(\w+)'))
     {
-        if(Test-IsNullOrEmpty -String "$(git.exe branch)")
+        if(Test-IsNullOrEmpty -String $BranchResults)
         {
             Write-Verbose -Message 'git branch did not return output. Assuming we are on the correct branch'
         }
@@ -426,8 +440,8 @@ Function Update-GitRepository
         {
             Throw-Exception -Type 'GitTargetBranchNotFound' `
                             -Message 'git could not find any current branch' `
-                            -Property @{ 'result' = $(git.exe branch) ;
-                                         'match'  = "$(git.exe branch)" -match '\*\s(\w+)'}
+                            -Property @{ 'result' = $BranchResults ;
+                                         'match'  = $BranchResults -match '\*\s(\w+)'}
         }
     }
     elseif($Matches[1] -ne $RepositoryInformation.Branch)
@@ -435,7 +449,7 @@ Function Update-GitRepository
         Write-Verbose -Message "Setting current branch to [$($RepositoryInformation.Branch)]"
         try
         {
-            git.exe checkout $RepositoryInformation.Branch | Out-Null
+            (Invoke-Expression "$gitEXE checkout $($RepositoryInformation.Branch)") | Out-Null
         }
         catch
         {
@@ -445,7 +459,7 @@ Function Update-GitRepository
     
     try
     {
-        $initialization = git.exe pull
+        $initialization = Invoke-Expression -Command "$gitEXE pull"
     }
     catch
     {
