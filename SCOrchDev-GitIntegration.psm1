@@ -59,7 +59,7 @@ Function New-ChangesetTagLine
         Returns all variables in a JSON settings file
 
     .Parameter FilePath
-        The path to the JSON file containing SMA settings
+        The path to the JSON file containing settings
 #>
 Function Get-GlobalFromFile
 {
@@ -149,7 +149,7 @@ Function Get-GitRepositoryWorkflowName
                                   -File
     foreach($RunbookFile in $RunbookFiles)
     {
-        $RunbookNames += Get-SmaWorkflowNameFromFile -FilePath $RunbookFile.FullName
+        $RunbookNames += Get-WorkflowNameFromFile -FilePath $RunbookFile.FullName
     }
     $RunbookNames
 }
@@ -164,7 +164,7 @@ Function Get-GitRepositoryVariableName
                                   -File
     foreach($RunbookFile in $RunbookFiles)
     {
-        $RunbookNames += Get-SmaWorkflowNameFromFile -FilePath $RunbookFile.FullName
+        $RunbookNames += Get-WorkflowNameFromFile -FilePath $RunbookFile.FullName
     }
     Return $RunbookNames
 }
@@ -181,8 +181,8 @@ Function Get-GitRepositoryAssetName
     
     foreach($AssetFile in $AssetFiles)
     {
-        $VariableJSON = Get-SmaGlobalFromFile -FilePath $AssetFile.FullName -GlobalType Variables
-        $ScheduleJSON = Get-SmaGlobalFromFile -FilePath $AssetFile.FullName -GlobalType Schedules
+        $VariableJSON = Get-GlobalFromFile -FilePath $AssetFile.FullName -GlobalType Variables
+        $ScheduleJSON = Get-GlobalFromFile -FilePath $AssetFile.FullName -GlobalType Schedules
         if($VariableJSON)
         {
             Foreach($VariableName in (ConvertFrom-PSCustomObject(ConvertFrom-JSON $VariableJSON)).Keys)
@@ -315,7 +315,7 @@ Function Group-RepositoryFile
 }
 <#
     .Synopsis
-        Groups a list of SmaRunbooks by the RepositoryName from the
+        Groups a list of Runbooks by the RepositoryName from the
         tag line
 #>
 Function Group-RunbooksByRepository
@@ -325,7 +325,7 @@ Function Group-RunbooksByRepository
                         -KeyName 'Tags' `
                         -KeyFilterScript { 
                             Param($KeyName)
-                            if($KeyName -match 'RepositoryName:([^;]+);')
+                            if($KeyName -match 'RepositoryName:(.+)')
                             {
                                 $Matches[1]
                             }
