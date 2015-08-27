@@ -465,7 +465,19 @@ Function Update-GitRepository
     }
     catch
     {
-        Write-Exception -Exception $_ -Stream Warning
+        $Exception = $_
+        $ExceptionInformation = Get-ExceptionInfo -Exception $Exception
+        Switch($ExceptionInformation.Type)
+        {
+            'System.Management.Automation.RemoteException'
+            {
+                Write-Verbose -Message "Retrieved updates $($ExceptionInformation.Message)"
+            }
+            Default
+            {
+                Write-Exception -Exception $Exception -Stream Warning
+            }
+        }
     }
     try
     {
