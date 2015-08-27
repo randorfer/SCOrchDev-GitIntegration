@@ -460,6 +460,7 @@ Function Update-GitRepository
     try
     {
         $initialization = Invoke-Expression -Command "$gitEXE pull"
+        $initialization = Invoke-Expression -Command "$gitEXE submodule update"
     }
     catch
     {
