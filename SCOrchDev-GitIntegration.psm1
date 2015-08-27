@@ -411,13 +411,14 @@ Function Update-GitRepository
     Param([Parameter(Mandatory=$true) ] $RepositoryInformation)
     
     $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
-    
+    Write-Verbose -Message 'Starting [Update-GitRepository]'
     # Set current directory to the git repo location
     if(-Not (Test-Path -Path $RepositoryInformation.Path))
     {
         $ParentDirectory = New-FileItemContainer -FileItemPath $RepositoryInformation.Path
         Try
         {
+            Write-Verbose -Message 'Cloneing repository'
             Invoke-Expression -Command "$gitEXE clone $($RepositoryInformation.RepositoryPath) $($RepositoryInformation.Path) --recursive"
         }
         Catch
@@ -449,6 +450,7 @@ Function Update-GitRepository
         Write-Verbose -Message "Setting current branch to [$($RepositoryInformation.Branch)]"
         try
         {
+            Write-Verbose -Message "Changing branch to [$($RepositoryInformation.Branch)]"
             (Invoke-Expression "$gitEXE checkout $($RepositoryInformation.Branch)") | Out-Null
         }
         catch
@@ -467,5 +469,6 @@ Function Update-GitRepository
         Write-Exception -Exception $_ -Stream Warning
     }
     Set-Location -Path $CurrentLocation
+    Write-Verbose -Message 'Finished [Update-GitRepository]'
 }
 Export-ModuleMember -Function * -Verbose:$false -Debug:$False
