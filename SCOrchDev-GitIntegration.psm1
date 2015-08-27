@@ -479,6 +479,16 @@ Function Update-GitRepository
             }
         }
     }
+    
+    try
+    {
+        $initialization = Invoke-Expression -Command "$gitEXE submodule init"
+    }
+    catch
+    {
+        Write-Exception -Exception $_ -Stream Warning
+    }
+
     try
     {
         $initialization = Invoke-Expression -Command "$gitEXE submodule update"
