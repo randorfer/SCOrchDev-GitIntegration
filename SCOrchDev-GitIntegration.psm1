@@ -462,12 +462,20 @@ Function Update-GitRepository
     try
     {
         $initialization = Invoke-Expression -Command "$gitEXE pull"
+    }
+    catch
+    {
+        Write-Exception -Exception $_ -Stream Warning
+    }
+    try
+    {
         $initialization = Invoke-Expression -Command "$gitEXE submodule update"
     }
     catch
     {
         Write-Exception -Exception $_ -Stream Warning
     }
+    
     Set-Location -Path $CurrentLocation
     Write-Verbose -Message 'Finished [Update-GitRepository]'
 }
