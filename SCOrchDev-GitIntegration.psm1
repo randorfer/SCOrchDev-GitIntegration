@@ -23,7 +23,7 @@ $gitEXE = 'git.exe'
 #>
 Function New-ChangesetTagLine
 {
-    Param([Parameter(Mandatory=$false)][string] $TagLine,
+    Param([Parameter(Mandatory=$false)][string] $TagLine = [string]::EmptyString,
           [Parameter(Mandatory=$true)][string]  $CurrentCommit,
           [Parameter(Mandatory=$true)][string]  $RepositoryName)
 
@@ -71,19 +71,19 @@ Function Get-GlobalFromFile
 {
     Param([Parameter(Mandatory=$false)]
           [string] 
-          $FilePath,
+          $FilePath = [string]::EmptyString,
           
           [ValidateSet('Variables','Schedules')]
           [Parameter(Mandatory=$false)]
           [string] 
-          $GlobalType )
+          $GlobalType = 'Variables')
 
     $ReturnInformation = @{}
     try
     {
-        $SettingsJSON = (Get-Content $FilePath) -as [string]
+        $SettingsJSON = (Get-Content -Path $FilePath) -as [string]
         $SettingsObject = ConvertFrom-Json -InputObject $SettingsJSON
-        $SettingsHashTable = ConvertFrom-PSCustomObject $SettingsObject
+        $SettingsHashTable = ConvertFrom-PSCustomObject -InputObject $SettingsObject
         
         if(-not ($SettingsHashTable.ContainsKey($GlobalType)))
         {
@@ -95,7 +95,7 @@ Function Get-GlobalFromFile
         }
 
         $GlobalTypeObject = $SettingsHashTable."$GlobalType"
-        $GlobalTypeHashTable = ConvertFrom-PSCustomObject $GlobalTypeObject -ErrorAction SilentlyContinue
+        $GlobalTypeHashTable = ConvertFrom-PSCustomObject -InputObject $GlobalTypeObject -ErrorAction SilentlyContinue
 
         if(-not $GlobalTypeHashTable)
         {
@@ -117,7 +117,7 @@ Function Get-GlobalFromFile
         Write-Exception -Exception $_ -Stream Warning
     }
 
-    return (ConvertTo-JSON $ReturnInformation -Compress)
+    return (ConvertTo-JSON -InputObject $ReturnInformation -Compress)
 }
 <#
     .Synopsis
@@ -135,18 +135,18 @@ Function Get-GlobalFromFile
 #>
 Function Set-RepositoryInformationCommitVersion
 {
-    Param([Parameter(Mandatory=$false)][string] $RepositoryInformation,
-          [Parameter(Mandatory=$false)][string] $RepositoryName,
-          [Parameter(Mandatory=$false)][string] $Commit)
+    Param([Parameter(Mandatory=$false)][string] $RepositoryInformation = [string]::EmptyString,
+          [Parameter(Mandatory=$false)][string] $RepositoryName = [string]::EmptyString,
+          [Parameter(Mandatory=$false)][string] $Commit = [string]::EmptyString)
     
-    $_RepositoryInformation = (ConvertFrom-JSON $RepositoryInformation)
+    $_RepositoryInformation = (ConvertFrom-JSON -InputObject $RepositoryInformation)
     $_RepositoryInformation."$RepositoryName".CurrentCommit = $Commit
 
-    return (ConvertTo-Json $_RepositoryInformation -Compress)
+    return (ConvertTo-Json -InputObject $_RepositoryInformation -Compress)
 }
 Function Get-GitRepositoryWorkflowName
 {
-    Param([Parameter(Mandatory=$false)][string] $Path)
+    Param([Parameter(Mandatory=$false)][string] $Path = [string]::EmptyString)
 
     $RunbookNames = @()
     $RunbookFiles = Get-ChildItem -Path $Path `
@@ -161,7 +161,7 @@ Function Get-GitRepositoryWorkflowName
 }
 Function Get-GitRepositoryVariableName
 {
-    Param([Parameter(Mandatory=$false)][string] $Path)
+    Param([Parameter(Mandatory=$false)][string] $Path = [string]::EmptyString)
 
     $RunbookNames = @()
     $RunbookFiles = Get-ChildItem -Path $Path `
@@ -176,7 +176,7 @@ Function Get-GitRepositoryVariableName
 }
 Function Get-GitRepositoryAssetName
 {
-    Param([Parameter(Mandatory=$false)][string] $Path)
+    Param([Parameter(Mandatory=$false)][string] $Path = [string]::EmptyString)
 
     $Assets = @{ 'Variable' = @() ;
                  'Schedule' = @() }
@@ -191,14 +191,14 @@ Function Get-GitRepositoryAssetName
         $ScheduleJSON = Get-GlobalFromFile -FilePath $AssetFile.FullName -GlobalType Schedules
         if($VariableJSON)
         {
-            Foreach($VariableName in (ConvertFrom-PSCustomObject(ConvertFrom-JSON $VariableJSON)).Keys)
+            Foreach($VariableName in (ConvertFrom-PSCustomObject -InputObject (ConvertFrom-JSON -InputObject $VariableJSON)).Keys)
             {
                 $Assets.Variable += $VariableName
             }
         }
         if($ScheduleJSON)
         {
-            Foreach($ScheduleName in (ConvertFrom-PSCustomObject(ConvertFrom-JSON $ScheduleJSON)).Keys)
+            Foreach($ScheduleName in (ConvertFrom-PSCustomObject -InputObject (ConvertFrom-JSON -InputObject $ScheduleJSON)).Keys)
             {
                 $Assets.Schedule += $ScheduleName
             }
@@ -231,7 +231,7 @@ Function Group-RepositoryFile
     # Process PS1 Files
     try
     {
-        $PowerShellScriptFiles = ConvertTo-HashTable $_Files.'.ps1' -KeyName 'FileName'
+        $PowerShellScriptFiles = ConvertTo-HashTable -InputObject $_Files.'.ps1' -KeyName 'FileName'
         Write-Verbose -Message 'Found Powershell Files'
         foreach($ScriptName in $PowerShellScriptFiles.Keys)
         {
@@ -260,7 +260,7 @@ Function Group-RepositoryFile
     try
     {
         # Process Settings Files
-        $SettingsFiles = ConvertTo-HashTable $_Files.'.json' -KeyName 'FileName'
+        $SettingsFiles = ConvertTo-HashTable -InputObject $_Files.'.json' -KeyName 'FileName'
         Write-Verbose -Message 'Found Settings Files'
         foreach($SettingsFileName in $SettingsFiles.Keys)
         {
@@ -289,7 +289,7 @@ Function Group-RepositoryFile
     }
     try
     {
-        $PSModuleFiles = ConvertTo-HashTable $_Files.'.psd1' -KeyName 'FileName'
+        $PSModuleFiles = ConvertTo-HashTable -InputObject $_Files.'.psd1' -KeyName 'FileName'
         Write-Verbose -Message 'Found Powershell Module Files'
         foreach($PSModuleName in $PSModuleFiles.Keys)
         {
@@ -317,7 +317,7 @@ Function Group-RepositoryFile
         Write-Verbose -Message 'No Powershell Module Files found'
     }
     Write-Verbose -Message 'Finished [Group-RepositoryFile]'
-    Return (ConvertTo-JSON $ReturnObj -Compress)
+    Return (ConvertTo-JSON -InputObject $ReturnObj -Compress)
 }
 <#
     .Synopsis
@@ -373,7 +373,7 @@ Function Find-GitRepositoryChange
     $CurrentLocation = Get-Location
     try
     {
-        Set-Location $RepositoryInformation.Path
+        Set-Location -Path $RepositoryInformation.Path
 
         $ReturnObj = @{ 'CurrentCommit' = $RepositoryInformation.CurrentCommit;
                         'Files' = @() }
@@ -400,10 +400,10 @@ Function Find-GitRepositoryChange
     }
     finally
     {
-        Set-Location $CurrentLocation
+        Set-Location -Path $CurrentLocation
     }
     
-    return (ConvertTo-Json $ReturnObj -Compress)
+    return (ConvertTo-Json -InputObject $ReturnObj -Compress)
 }
 <#
     .Synopsis
@@ -421,7 +421,7 @@ Function Update-GitRepository
     # Set current directory to the git repo location
     if(-Not (Test-Path -Path $RepositoryInformation.Path))
     {
-        $ParentDirectory = New-FileItemContainer -FileItemPath $RepositoryInformation.Path
+        $null = New-FileItemContainer -FileItemPath $RepositoryInformation.Path
         Try
         {
             Write-Verbose -Message 'Cloneing repository'
@@ -434,9 +434,9 @@ Function Update-GitRepository
         
     }
     $CurrentLocation = Get-Location
-    Set-Location $RepositoryInformation.Path
+    Set-Location -Path $RepositoryInformation.Path
 
-    $BranchResults = (Invoke-Expression "$gitEXE branch") -as [string]
+    $BranchResults = (Invoke-Expression -Command "$gitEXE branch") -as [string]
     if(-not ($BranchResults -match '\*\s(\w+)'))
     {
         if(Test-IsNullOrEmpty -String $BranchResults)
@@ -457,7 +457,7 @@ Function Update-GitRepository
         try
         {
             Write-Verbose -Message "Changing branch to [$($RepositoryInformation.Branch)]"
-            (Invoke-Expression "$gitEXE checkout $($RepositoryInformation.Branch)") | Out-Null
+            (Invoke-Expression -Command "$gitEXE checkout $($RepositoryInformation.Branch)") | Out-Null
         }
         catch
         {
