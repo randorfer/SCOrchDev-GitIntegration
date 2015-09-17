@@ -27,7 +27,7 @@ CompanyName = 'SCOrchDev'
 Copyright = '(c) SCOrchDev. All rights reserved.'
 
 # Description of the functionality provided by this module
-# Description = ''
+Description = 'Git integration for Azure Automation continuous deployment'
 
 # Minimum version of the Windows PowerShell engine required by this module
 PowerShellVersion = '4.0'
@@ -81,7 +81,7 @@ AliasesToExport = '*'
 ModuleList = @('SCOrchDev-GitIntegration')
 
 # List of all files packaged with this module
-FileList = @('SCOrchDev-GitIntegration.psd1', 'SCOrchDev-GitIntegration.psm1')
+FileList = @('SCOrchDev-GitIntegration.psd1', 'SCOrchDev-GitIntegration.psm1', 'SCOrchDev-GitIntegration.tests.ps1', 'LICENSE', 'README.md')
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess
 # PrivateData = ''
