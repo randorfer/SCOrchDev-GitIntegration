@@ -1,12 +1,9 @@
-﻿if($env:Path -match '([^;]*Git\\cmd);')
-{
-    $gitEXE = "$($Matches[1])\git.exe"
-}
-else
+﻿if(-not $env:Path -match '([^;]*Git\\cmd);')
 {
     Throw-Exception -Type 'gitExeNotFound' `
                     -Message 'Could not find the git executable in the local computer''s path'
 }
+$gitEXE = 'git.exe'
 
 <#
     .Synopsis
