@@ -12,7 +12,7 @@
 RootModule = '.\SCOrchDev-GitIntegration.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.2'
+ModuleVersion = '2.0.0'
 
 # ID used to uniquely identify this module
 GUID = 'd3492bd8-9bac-4605-a21b-539589a94b3b'
@@ -48,7 +48,7 @@ PowerShellVersion = '4.0'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @('SCOrchDev-Utility')
+RequiredModules = @('SCOrchDev-Utility', 'SCOrchDev-Exception', 'SCOrchDev-File')
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()

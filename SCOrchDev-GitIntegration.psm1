@@ -1,4 +1,5 @@
-﻿if(-not $env:Path -match '([^;]*Git\\cmd);')
+﻿#requires -Version 3 -Modules SCOrchDev-Exception, SCOrchDev-File, SCOrchDev-Utility
+if(-not $env:Path -match '([^;]*Git\\cmd);')
 {
     Throw-Exception -Type 'gitExeNotFound' `
                     -Message 'Could not find the git executable in the local computer''s path'
