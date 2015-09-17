@@ -1,4 +1,12 @@
-﻿$gitEXE = "$($PSScriptRoot)\git\bin\git.exe"
+﻿if($env:Path -match '([^;]*Git\\cmd);')
+{
+    $gitEXE = "$($Matches[1])\git.exe"
+}
+else
+{
+    Throw-Exception -Type 'gitExeNotFound' `
+                    -Message 'Could not find the git executable in the local computer''s path'
+}
 
 <#
     .Synopsis
