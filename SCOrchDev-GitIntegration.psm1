@@ -133,7 +133,7 @@ Function Get-GlobalFromFile
     .Paramter Commit
         The new commit to store
 #>
-Function Set-RepositoryInformationCommitVersion
+Function Update-RepositoryInformationCommitVersion
 {
     Param([Parameter(Mandatory=$false)][string] $RepositoryInformation = [string]::EmptyString,
           [Parameter(Mandatory=$false)][string] $RepositoryName = [string]::EmptyString,
