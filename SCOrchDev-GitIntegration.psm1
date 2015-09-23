@@ -385,14 +385,18 @@ Function Find-GitRepositoryChange
         $ReturnObj = @{ 'CurrentCommit' = $NewCommit ; 'Files' = @() }
         Foreach($File in $ModifiedFiles)
         {
-            if("$($File)" -Match '([a-zA-Z])\s+(.+\/([^\./]+(\..+)))$')
+            if("$($File)" -Match '([a-zA-Z])\s+(.+(\..+))$')
             {
-                $ReturnObj.Files += @{ 'FullPath' = "$($RepositoryInformation.Path)\$($Matches[2].Replace('/','\'))" ;
-                                       'FileName' = $Matches[3] ;
-                                       'FileExtension' = $Matches[4].ToLower()
-                                       'ChangeType' = $Matches[1] }
+                $FileInfo = [System.IO.FileInfo]::new("$((Get-Location).Path)\$($Matches[2].Replace('/','\'))")
+                $ReturnObj.Files += @{ 
+                    'FullPath' = "$($FileInfo.FullName)"
+                    'FileName' = $FileInfo.Name
+                    'FileExtension' = $FileInfo.Extension
+                    'ChangeType' = $Matches[1]
+                }
             }
         }
+        $ReturnObj.Files += Get-GitSumboduleFileChange -StartCommit $StartCommit
     }
     catch
     {
@@ -404,6 +408,69 @@ Function Find-GitRepositoryChange
     }
     
     return (ConvertTo-Json -InputObject $ReturnObj -Compress)
+}
+
+<#
+#>
+Function Get-GitSumboduleFileChange
+{
+    Param(
+        [Parameter(
+            Mandatory=$True
+        )]
+        [string]
+        $StartCommit
+    )
+    $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    
+    # Set current directory to the git repo location
+    $CurrentLocation = Get-Location
+    try
+    {
+        $ModifiedSubmodule = Invoke-Expression -Command "$($gitExe) submodule summary $PreviousCommit" `
+            | Where-Object { $_ -match '\* (.*) ([a-f0-9]+\.\.\.[a-f0-9]+)+' } | ForEach-Object {
+                @{$Matches[1] = $Matches[2]}
+            }
+
+        Foreach($_ModifiedSubmodule in $ModifiedSubmodule)
+        {
+            try
+            {
+                Set-Location -Path $_ModifiedSubmodule.Keys[0]
+
+                $ModifiedFiles = Invoke-Expression -Command "$($gitExe) diff --name-status $($_ModifiedSubmodule.Values[0])"
+                Foreach($File in $ModifiedFiles)
+                {
+                    if("$($File)" -Match '([a-zA-Z])\s+(.+(\..+))$')
+                    {
+                        $FileInfo = [System.IO.FileInfo]::new("$((Get-Location).Path)\$($Matches[2].Replace('/','\'))")
+                        Write-Output -InputObject @{ 
+                            'FullPath' = "$($FileInfo.FullName)"
+                            'FileName' = $FileInfo.Name
+                            'FileExtension' = $FileInfo.Extension
+                            'ChangeType' = $Matches[1]
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                Write-Exception -Exception $_ -Stream Warning
+            }
+            finally
+            {
+                Set-Location -Path $CurrentLocation
+            }       
+        }
+    }
+    catch
+    {
+        Write-Exception -Exception $_ -Stream Warning
+    }
+    finally
+    {
+        Set-Location -Path $CurrentLocation
+    }
 }
 <#
     .Synopsis
