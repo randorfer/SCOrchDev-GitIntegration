@@ -139,7 +139,7 @@ Function Update-RepositoryInformationCommitVersion
           [Parameter(Mandatory=$false)][string] $RepositoryName = [string]::EmptyString,
           [Parameter(Mandatory=$false)][string] $Commit = [string]::EmptyString)
     
-    $_RepositoryInformation = (ConvertFrom-JSON -InputObject $RepositoryInformation)
+    $_RepositoryInformation = (ConvertFrom-JSON -InputObject $RepositoryInformationJSON)
     $_RepositoryInformation."$RepositoryName".CurrentCommit = $Commit
 
     return (ConvertTo-Json -InputObject $_RepositoryInformation -Compress)
