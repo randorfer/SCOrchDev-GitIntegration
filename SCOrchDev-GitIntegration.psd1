@@ -12,7 +12,7 @@
 RootModule = '.\SCOrchDev-GitIntegration.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.0.2'
+ModuleVersion = '2.0.3'
 
 # ID used to uniquely identify this module
 GUID = 'd3492bd8-9bac-4605-a21b-539589a94b3b'

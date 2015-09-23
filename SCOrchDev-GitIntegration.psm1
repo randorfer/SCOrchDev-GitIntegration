@@ -135,7 +135,7 @@ Function Get-GlobalFromFile
 #>
 Function Update-RepositoryInformationCommitVersion
 {
-    Param([Parameter(Mandatory=$false)][string] $RepositoryInformation = [string]::EmptyString,
+    Param([Parameter(Mandatory=$false)][string] $RepositoryInformationJSON = [string]::EmptyString,
           [Parameter(Mandatory=$false)][string] $RepositoryName = [string]::EmptyString,
           [Parameter(Mandatory=$false)][string] $Commit = [string]::EmptyString)
     
