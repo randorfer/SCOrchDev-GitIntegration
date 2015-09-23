@@ -427,7 +427,7 @@ Function Get-GitSumboduleFileChange
     $CurrentLocation = Get-Location
     try
     {
-        $ModifiedSubmodule = Invoke-Expression -Command "$($gitExe) submodule summary $PreviousCommit" `
+        $ModifiedSubmodule = Invoke-Expression -Command "$($gitExe) submodule summary $StartCommit" `
             | Where-Object { $_ -match '\* (.*) ([a-f0-9]+\.\.\.[a-f0-9]+)+' } | ForEach-Object {
                 @{$Matches[1] = $Matches[2]}
             }
@@ -437,8 +437,12 @@ Function Get-GitSumboduleFileChange
             try
             {
                 Set-Location -Path $_ModifiedSubmodule.Keys[0]
-
-                $ModifiedFiles = Invoke-Expression -Command "$($gitExe) diff --name-status $($_ModifiedSubmodule.Values[0])"
+                $FirstRepoCommit = (Invoke-Expression -Command "$($gitExe) rev-list --max-parents=0 HEAD") -as [string]
+                $Commits= $_ModifiedSubmodule.Values[0].Split('.')
+                $FirstCommit = $Commits[0]
+                $SecondCommit = $Commits[-1]
+                if($FirstCommit -eq '0000000') { $FirstCommit = $FirstRepoCommit }
+                $ModifiedFiles = Invoke-Expression -Command "$($gitExe) diff --name-status $FirstCommit $SecondCommit"
                 Foreach($File in $ModifiedFiles)
                 {
                     if("$($File)" -Match '([a-zA-Z])\s+(.+(\..+))$')
