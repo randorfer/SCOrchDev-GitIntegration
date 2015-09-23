@@ -387,7 +387,7 @@ Function Find-GitRepositoryChange
         {
             if("$($File)" -Match '([a-zA-Z])\s+(.+(\..+))$')
             {
-                $FileInfo = [System.IO.FileInfo]::new("$((Get-Location).Path)\$($Matches[2].Replace('/','\'))")
+                $FileInfo = ("$((Get-Location).Path)\$($Matches[2].Replace('/','\'))") -as [System.IO.FileInfo]
                 $ReturnObj.Files += @{ 
                     'FullPath' = "$($FileInfo.FullName)"
                     'FileName' = $FileInfo.Name
@@ -447,7 +447,7 @@ Function Get-GitSumboduleFileChange
                 {
                     if("$($File)" -Match '([a-zA-Z])\s+(.+(\..+))$')
                     {
-                        $FileInfo = [System.IO.FileInfo]::new("$((Get-Location).Path)\$($Matches[2].Replace('/','\'))")
+                        $FileInfo = "$((Get-Location).Path)\$($Matches[2].Replace('/','\'))"  -as [System.IO.FileInfo]
                         Write-Output -InputObject @{ 
                             'FullPath' = "$($FileInfo.FullName)"
                             'FileName' = $FileInfo.Name
