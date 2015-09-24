@@ -331,7 +331,7 @@ Function Group-RunbooksByRepository
                         -KeyName 'Tags' `
                         -KeyFilterScript { 
                             Param($KeyName)
-                            if($KeyName -match 'RepositoryName:(.+)')
+                            if($KeyName -match 'RepositoryName:([^;]+)')
                             {
                                 $Matches[1]
                             }
