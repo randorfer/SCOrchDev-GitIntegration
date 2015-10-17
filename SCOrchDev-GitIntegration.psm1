@@ -1,10 +1,5 @@
 ﻿#requires -Version 3 -Modules SCOrchDev-Exception, SCOrchDev-File, SCOrchDev-Utility
-if(-not $env:Path -match '([^;]*Git\\cmd);')
-{
-    Throw-Exception -Type 'gitExeNotFound' `
-                    -Message 'Could not find the git executable in the local computer''s path'
-}
-$gitEXE = 'git.exe'
+$gitEXE = "$PSScriptRoot\Git\bin\git.exe"
 
 <#
     .Synopsis
@@ -26,7 +21,8 @@ Function New-ChangesetTagLine
     Param([Parameter(Mandatory=$false)][string] $TagLine = [string]::EmptyString,
           [Parameter(Mandatory=$true)][string]  $CurrentCommit,
           [Parameter(Mandatory=$true)][string]  $RepositoryName)
-
+    $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    $CompletedParameters = Write-StartingMessage -Stream Debug
     $NewVersion = $False
     if(($TagLine -as [string]) -match 'CurrentCommit:([^;]+);')
     {
@@ -56,6 +52,7 @@ Function New-ChangesetTagLine
         $TagLine = "RepositoryName:$($RepositoryName);$($TagLine)"
         $NewVersion = $True
     }
+    Write-CompletedMessage @CompletedParameters
     return (ConvertTo-JSON -InputObject @{'TagLine' = $TagLine ;
                                           'NewVersion' = $NewVersion } `
                            -Compress)
@@ -77,7 +74,8 @@ Function Get-GlobalFromFile
           [Parameter(Mandatory=$false)]
           [string] 
           $GlobalType = 'Variables')
-
+    $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    $CompletedParameters = Write-StartingMessage -Stream Debug
     $ReturnInformation = @{}
     try
     {
@@ -116,7 +114,7 @@ Function Get-GlobalFromFile
     {
         Write-Exception -Exception $_ -Stream Warning
     }
-
+    Write-CompletedMessage @CompletedParameters
     return (ConvertTo-JSON -InputObject $ReturnInformation -Compress)
 }
 <#
@@ -138,16 +136,18 @@ Function Update-RepositoryInformationCommitVersion
     Param([Parameter(Mandatory=$false)][string] $RepositoryInformationJSON = [string]::EmptyString,
           [Parameter(Mandatory=$false)][string] $RepositoryName = [string]::EmptyString,
           [Parameter(Mandatory=$false)][string] $Commit = [string]::EmptyString)
-    
+    $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    $CompletedParameters = Write-StartingMessage -Stream Debug
     $_RepositoryInformation = (ConvertFrom-JSON -InputObject $RepositoryInformationJSON)
     $_RepositoryInformation."$RepositoryName".CurrentCommit = $Commit
-
+    Write-CompletedMessage @CompletedParameters
     return (ConvertTo-Json -InputObject $_RepositoryInformation -Compress)
 }
 Function Get-GitRepositoryWorkflowName
 {
     Param([Parameter(Mandatory=$false)][string] $Path = [string]::EmptyString)
-
+    $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    $CompletedParameters = Write-StartingMessage -Stream Debug
     $RunbookNames = @()
     $RunbookFiles = Get-ChildItem -Path $Path `
                                   -Filter '*.ps1' `
@@ -157,12 +157,14 @@ Function Get-GitRepositoryWorkflowName
     {
         $RunbookNames += Get-WorkflowNameFromFile -FilePath $RunbookFile.FullName
     }
+    Write-CompletedMessage @CompletedParameters
     $RunbookNames
 }
 Function Get-GitRepositoryVariableName
 {
     Param([Parameter(Mandatory=$false)][string] $Path = [string]::EmptyString)
-
+    $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    $CompletedParameters = Write-StartingMessage -Stream Debug
     $RunbookNames = @()
     $RunbookFiles = Get-ChildItem -Path $Path `
                                   -Filter '*.json' `
@@ -172,12 +174,14 @@ Function Get-GitRepositoryVariableName
     {
         $RunbookNames += Get-WorkflowNameFromFile -FilePath $RunbookFile.FullName
     }
+    Write-CompletedMessage @CompletedParameters
     Return $RunbookNames
 }
 Function Get-GitRepositoryAssetName
 {
     Param([Parameter(Mandatory=$false)][string] $Path = [string]::EmptyString)
-
+    $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    $CompletedParameters = Write-StartingMessage -Stream Debug
     $Assets = @{ 'Variable' = @() ;
                  'Schedule' = @() }
     $AssetFiles = Get-ChildItem -Path $Path `
@@ -204,6 +208,7 @@ Function Get-GitRepositoryAssetName
             }
         }
     }
+    Write-CompletedMessage @CompletedParameters
     Return $Assets
 }
 <#
@@ -212,13 +217,39 @@ Function Get-GitRepositoryAssetName
         # TODO put logic for import order here
     .Parameter Files
         The files to sort
-    .Parameter RepositoryInformation
+    .Parameter Path
+        The path to the git repository root
+    .Parameter RunbookFolder
+        The name of the folder with runbooks inside
+    .Parameter GlobalsFolder
+        The name of the folder with globals inside
+    .Parameter PowerShellModuleFolder
+        The name of the folder with PowerShell modules inside
 #>
 Function Group-RepositoryFile
 {
-    Param([Parameter(Mandatory=$True)] $Files,
-          [Parameter(Mandatory=$True)] $RepositoryInformation)
-    Write-Verbose -Message 'Starting [Group-RepositoryFile]'
+    Param(
+        [Parameter(Mandatory=$True)]
+        $File,
+    
+        [Parameter(Mandatory=$True)]
+        [string]
+        $Path,
+
+        [Parameter(Mandatory=$True)]
+        [string]
+        $RunbookFolder,
+
+        [Parameter(Mandatory=$True)]
+        [string]
+        $GlobalsFolder,
+
+        [Parameter(Mandatory=$True)]
+        [string]
+        $PowerShellModuleFolder
+    )
+    $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    $CompletedParameters = Write-StartingMessage
     $_Files = ConvertTo-Hashtable -InputObject $Files -KeyName FileExtension
     $ReturnObj = @{ 'ScriptFiles' = @() ;
                     'SettingsFiles' = @() ;
@@ -240,7 +271,7 @@ Function Group-RepositoryFile
             {
                 foreach($Path in $PowerShellScriptFiles."$ScriptName".FullPath)
                 {
-                    if($Path -like "$($RepositoryInformation.Path)\$($RepositoryInformation.RunbookFolder)\*")
+                    if($Path -like "$($Path)\$($RunbookFolder)\*")
                     {
                         $ReturnObj.ScriptFiles += $Path
                         break
@@ -269,7 +300,7 @@ Function Group-RepositoryFile
             {
                 foreach($Path in $SettingsFiles."$SettingsFileName".FullPath)
                 {
-                    if($Path -like "$($RepositoryInformation.Path)\$($RepositoryInformation.GlobalsFolder)\*")
+                    if($Path -like "$($Path)\$($GlobalsFolder)\*")
                     {
                         $ReturnObj.CleanAssets = $True
                         $ReturnObj.SettingsFiles += $Path
@@ -298,7 +329,7 @@ Function Group-RepositoryFile
             {
                 foreach($Path in $PSModuleFiles."$PSModuleName".FullPath)
                 {
-                    if($Path -like "$($RepositoryInformation.Path)\$($RepositoryInformation.PowerShellModuleFolder)\*")
+                    if($Path -like "$($Path)\$($PowerShellModuleFolder)\*")
                     {
                         $ReturnObj.ModulesUpdated = $True
                         $ReturnObj.ModuleFiles += $Path
@@ -316,7 +347,7 @@ Function Group-RepositoryFile
     {
         Write-Verbose -Message 'No Powershell Module Files found'
     }
-    Write-Verbose -Message 'Finished [Group-RepositoryFile]'
+    Write-CompletedMessage @CompletedParameters
     Return (ConvertTo-JSON -InputObject $ReturnObj -Compress)
 }
 <#
@@ -327,6 +358,8 @@ Function Group-RepositoryFile
 Function Group-RunbooksByRepository
 {
     Param([Parameter(Mandatory=$True)] $InputObject)
+    $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    $CompletedParameters = Write-StartingMessage -Stream Debug
     ConvertTo-Hashtable -InputObject $InputObject `
                         -KeyName 'Tags' `
                         -KeyFilterScript { 
@@ -336,6 +369,7 @@ Function Group-RunbooksByRepository
                                 $Matches[1]
                             }
                         }
+    Write-CompletedMessage @CompletedParameters
 }
 <#
     .Synopsis
@@ -345,6 +379,8 @@ Function Group-RunbooksByRepository
 Function Group-AssetsByRepository
 {
     Param([Parameter(Mandatory=$True)] $InputObject)
+    $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    $CompletedParameters = Write-StartingMessage -Stream Debug
     ConvertTo-Hashtable -InputObject $InputObject `
                         -KeyName 'Description' `
                         -KeyFilterScript { 
@@ -360,27 +396,43 @@ Function Group-AssetsByRepository
         Check the target Git Repo / Branch for any updated files. 
         Ingores files in the root
     
-    .Parameter RepositoryInformation
-        The PSCustomObject containing repository information
+    .Parameter Path
+        The path of the mapped repository
+
+    .Parameter StartCommit
+        The commit find changes since
 #>
 Function Find-GitRepositoryChange
 {
-    Param([Parameter(Mandatory=$true) ] $RepositoryInformation)
+    Param(
+        [Parameter(
+            Mandatory=$true
+        )]
+        [string]
+        $Path,
+        
+        [Parameter(
+            Mandatory=$false
+        )]
+        [string]
+        $StartCommit = -1
+    )
     
     $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    $CompletedParameters = Write-StartingMessage
     
     # Set current directory to the git repo location
     $CurrentLocation = Get-Location
     try
     {
-        Set-Location -Path $RepositoryInformation.Path
+        Set-Location -Path $Path
 
-        $ReturnObj = @{ 'CurrentCommit' = $RepositoryInformation.CurrentCommit;
+        $ReturnObj = @{ 'CurrentCommit' = $CurrentCommit;
                         'Files' = @() }
     
         $NewCommit = (Invoke-Expression -Command "$($gitExe) rev-parse --short HEAD") -as  [string]
         $FirstRepoCommit = (Invoke-Expression -Command "$($gitExe) rev-list --max-parents=0 HEAD") -as [string]
-        $StartCommit = (Select-FirstValid -Value $RepositoryInformation.CurrentCommit, $FirstRepoCommit -FilterScript { $_ -ne -1 }) -as [string]
+        $StartCommit = (Select-FirstValid -Value $StartCommit, $FirstRepoCommit -FilterScript { $_ -ne -1 }) -as [string]
         $ModifiedFiles = Invoke-Expression -Command "$($gitExe) diff --name-status $StartCommit $NewCommit"
         $ReturnObj = @{ 'CurrentCommit' = $NewCommit ; 'Files' = @() }
         Foreach($File in $ModifiedFiles)
@@ -406,7 +458,7 @@ Function Find-GitRepositoryChange
     {
         Set-Location -Path $CurrentLocation
     }
-    
+    Write-CompletedMessage @CompletedParameters
     return (ConvertTo-Json -InputObject $ReturnObj -Compress)
 }
 
@@ -422,6 +474,7 @@ Function Get-GitSumboduleFileChange
         $StartCommit
     )
     $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    $CompletedParameters = Write-StartingMessage
     
     # Set current directory to the git repo location
     $CurrentLocation = Get-Location
@@ -475,28 +528,58 @@ Function Get-GitSumboduleFileChange
     {
         Set-Location -Path $CurrentLocation
     }
+    Write-CompletedMessage @CompletedParameters
 }
 <#
     .Synopsis
         Updates a git repository to the latest version
     
-    .Parameter RepositoryInformation
-        The PSCustomObject containing repository information
+    .Parameter RepositoryPath
+        The path to the repository to update
+            ex http://github.com/randorfer/scorchdev
+    .Parameter LocalPath
+        The local path to map the repository to
+    .Parameter Branch
+        The branch to checkout and update
 #>
 Function Update-GitRepository
 {
-    Param([Parameter(Mandatory=$true) ] $RepositoryInformation)
+    Param(
+        [Parameter(
+            Mandatory=$true,
+            ValueFromPipeline = $true,
+            Position = 1
+        )]
+        [string]
+        $RepositoryPath,
+        
+        [Parameter(
+            Mandatory=$true,
+            ValueFromPipeline = $true,
+            Position = 1
+        )]
+        [string]
+        $LocalPath,
+
+        [Parameter(
+            Mandatory=$false,
+            ValueFromPipeline = $true,
+            Position = 1
+        )]
+        [string]
+        $Branch = 'master'
+    )
     
     $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
-    Write-Verbose -Message 'Starting [Update-GitRepository]'
+    $CompletedParameters = Write-StartingMessage
     # Set current directory to the git repo location
-    if(-Not (Test-Path -Path $RepositoryInformation.Path))
+    if(-Not (Test-Path -Path $Path))
     {
-        $null = New-FileItemContainer -FileItemPath $RepositoryInformation.Path
+        $null = New-FileItemContainer -FileItemPath $LocalPath
         Try
         {
             Write-Verbose -Message 'Cloneing repository'
-            Invoke-Expression -Command "$gitEXE clone $($RepositoryInformation.RepositoryPath) $($RepositoryInformation.Path) --recursive"
+            Invoke-Expression -Command "$gitEXE clone $($RepositoryPath) $($LocalPath) --recursive"
         }
         Catch
         {
@@ -505,7 +588,7 @@ Function Update-GitRepository
         
     }
     $CurrentLocation = Get-Location
-    Set-Location -Path $RepositoryInformation.Path
+    Set-Location -Path $Path
 
     $BranchResults = (Invoke-Expression -Command "$gitEXE branch") -as [string]
     if(-not ($BranchResults -match '\*\s(\w+)'))
@@ -522,13 +605,13 @@ Function Update-GitRepository
                                          'match'  = $BranchResults -match '\*\s(\w+)'}
         }
     }
-    elseif($Matches[1] -ne $RepositoryInformation.Branch)
+    elseif($Matches[1] -ne $Branch)
     {
-        Write-Verbose -Message "Setting current branch to [$($RepositoryInformation.Branch)]"
+        Write-Verbose -Message "Setting current branch to [$($Branch)]"
         try
         {
-            Write-Verbose -Message "Changing branch to [$($RepositoryInformation.Branch)]"
-            (Invoke-Expression -Command "$gitEXE checkout $($RepositoryInformation.Branch)") | Out-Null
+            Write-Verbose -Message "Changing branch to [$($Branch)]"
+            (Invoke-Expression -Command "$gitEXE checkout $($Branch)") | Out-Null
         }
         catch
         {
@@ -576,6 +659,6 @@ Function Update-GitRepository
     }
     
     Set-Location -Path $CurrentLocation
-    Write-Verbose -Message 'Finished [Update-GitRepository]'
+    Write-CompletedMessage @CompletedParameters
 }
 Export-ModuleMember -Function * -Verbose:$false -Debug:$False
