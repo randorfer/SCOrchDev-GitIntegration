@@ -1,5 +1,10 @@
 ﻿#requires -Version 3 -Modules SCOrchDev-Exception, SCOrchDev-File, SCOrchDev-Utility
-$gitEXE = "$PSScriptRoot\Git\bin\git.exe"
+if(-not $env:Path -match '([^;]*Git\\cmd);')
+{
+    Throw-Exception -Type 'gitExeNotFound' `
+                    -Message 'Could not find the git executable in the local computer''s path'
+}
+$gitEXE = 'git.exe'
 
 <#
     .Synopsis
