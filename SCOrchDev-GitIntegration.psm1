@@ -564,7 +564,7 @@ Function Update-GitRepository
             Position = 1
         )]
         [string]
-        $LocalPath,
+        $Path,
 
         [Parameter(
             Mandatory=$false,
@@ -580,11 +580,11 @@ Function Update-GitRepository
     # Set current directory to the git repo location
     if(-Not (Test-Path -Path $Path))
     {
-        $null = New-FileItemContainer -FileItemPath $LocalPath
+        $null = New-FileItemContainer -FileItemPath $Path
         Try
         {
             Write-Verbose -Message 'Cloneing repository'
-            Invoke-Expression -Command "$gitEXE clone $($RepositoryPath) $($LocalPath) --recursive"
+            Invoke-Expression -Command "$gitEXE clone $($RepositoryPath) $($Path) --recursive"
         }
         Catch
         {
