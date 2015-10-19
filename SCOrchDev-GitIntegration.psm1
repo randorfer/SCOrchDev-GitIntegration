@@ -58,9 +58,8 @@ Function New-ChangesetTagLine
         $NewVersion = $True
     }
     Write-CompletedMessage @CompletedParameters
-    return (ConvertTo-JSON -InputObject @{'TagLine' = $TagLine ;
-                                          'NewVersion' = $NewVersion } `
-                           -Compress)
+    return @{'TagLine' = $TagLine ;
+             'NewVersion' = $NewVersion }
 }
 <#
     .Synopsis
@@ -117,10 +116,10 @@ Function Get-GlobalFromFile
     }
     catch
     {
-        Write-Exception -Exception $_ -Stream Warning
+        Write-Exception -Exception $_ -Stream Debug
     }
     Write-CompletedMessage @CompletedParameters
-    return (ConvertTo-JSON -InputObject $ReturnInformation -Compress)
+    return $ReturnInformation
 }
 <#
     .Synopsis
@@ -148,7 +147,7 @@ Function Update-RepositoryInformationCommitVersion
     Write-CompletedMessage @CompletedParameters
     return (ConvertTo-Json -InputObject $_RepositoryInformation -Compress)
 }
-Function Get-GitRepositoryWorkflowName
+Function Get-GitRepositoryRunbookName
 {
     Param([Parameter(Mandatory=$false)][string] $Path = [string]::EmptyString)
     $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
@@ -160,7 +159,15 @@ Function Get-GitRepositoryWorkflowName
                                   -File
     foreach($RunbookFile in $RunbookFiles)
     {
-        $RunbookNames += Get-WorkflowNameFromFile -FilePath $RunbookFile.FullName
+        if(Test-FileIsWorkflow -FilePath $RunbookFile.FullName)
+        {
+            $RunbookNames += Get-WorkflowNameFromFile -FilePath $RunbookFile.FullName
+        }
+        else
+        {
+            $RunbookNames += Get-ScriptNameFromFileName -FilePath $RunbookFile.FullName
+        }
+        
     }
     Write-CompletedMessage @CompletedParameters
     $RunbookNames
@@ -353,7 +360,7 @@ Function Group-RepositoryFile
         Write-Verbose -Message 'No Powershell Module Files found'
     }
     Write-CompletedMessage @CompletedParameters
-    Return (ConvertTo-JSON -InputObject $ReturnObj -Compress)
+    Return $ReturnObj
 }
 <#
     .Synopsis
@@ -464,7 +471,7 @@ Function Find-GitRepositoryChange
         Set-Location -Path $CurrentLocation
     }
     Write-CompletedMessage @CompletedParameters
-    return (ConvertTo-Json -InputObject $ReturnObj -Compress)
+    return $ReturnObj
 }
 
 <#
