@@ -275,25 +275,32 @@ Function Group-RepositoryFile
     try
     {
         $PowerShellScriptFiles = ConvertTo-HashTable -InputObject $_Files.'.ps1' -KeyName 'FileName'
-        Write-Verbose -Message 'Found Powershell Files'
-        foreach($ScriptName in $PowerShellScriptFiles.Keys)
+        if($PowerShellScriptFiles -as [bool])
         {
-            if($PowerShellScriptFiles."$ScriptName".ChangeType -contains 'M' -or
-               $PowerShellScriptFiles."$ScriptName".ChangeType -contains 'A')
+            Write-Verbose -Message 'Found Powershell Files'
+            foreach($ScriptName in $PowerShellScriptFiles.Keys)
             {
-                foreach($Path in $PowerShellScriptFiles."$ScriptName".FullPath)
+                if($PowerShellScriptFiles."$ScriptName".ChangeType -contains 'M' -or
+                   $PowerShellScriptFiles."$ScriptName".ChangeType -contains 'A')
                 {
-                    if($Path -like "$($Path)\$($RunbookFolder)\*")
+                    foreach($Path in $PowerShellScriptFiles."$ScriptName".FullPath)
                     {
-                        $ReturnObj.ScriptFiles += $Path
-                        break
-                    }
-                }            
+                        if($Path -like "$($Path)\$($RunbookFolder)\*")
+                        {
+                            $ReturnObj.ScriptFiles += $Path
+                            break
+                        }
+                    }            
+                }
+                else
+                {
+                    $ReturnObj.CleanRunbooks = $True
+                }
             }
-            else
-            {
-                $ReturnObj.CleanRunbooks = $True
-            }
+        }
+        else
+        {
+            Write-Verbose -Message 'No Powershell Files found'
         }
     }
     catch
@@ -304,26 +311,33 @@ Function Group-RepositoryFile
     {
         # Process Settings Files
         $SettingsFiles = ConvertTo-HashTable -InputObject $_Files.'.json' -KeyName 'FileName'
-        Write-Verbose -Message 'Found Settings Files'
-        foreach($SettingsFileName in $SettingsFiles.Keys)
+        if($SettingsFiles -as [bool])
         {
-            if($SettingsFiles."$SettingsFileName".ChangeType -contains 'M' -or
-               $SettingsFiles."$SettingsFileName".ChangeType -contains 'A')
+            Write-Verbose -Message 'Found Settings Files'
+            foreach($SettingsFileName in $SettingsFiles.Keys)
             {
-                foreach($Path in $SettingsFiles."$SettingsFileName".FullPath)
+                if($SettingsFiles."$SettingsFileName".ChangeType -contains 'M' -or
+                   $SettingsFiles."$SettingsFileName".ChangeType -contains 'A')
                 {
-                    if($Path -like "$($Path)\$($GlobalsFolder)\*")
+                    foreach($Path in $SettingsFiles."$SettingsFileName".FullPath)
                     {
-                        $ReturnObj.CleanAssets = $True
-                        $ReturnObj.SettingsFiles += $Path
-                        break
+                        if($Path -like "$($Path)\$($GlobalsFolder)\*")
+                        {
+                            $ReturnObj.CleanAssets = $True
+                            $ReturnObj.SettingsFiles += $Path
+                            break
+                        }
                     }
                 }
+                else
+                {
+                    $ReturnObj.CleanAssets = $True
+                }
             }
-            else
-            {
-                $ReturnObj.CleanAssets = $True
-            }
+        }
+        else
+        {
+            Write-Verbose -Message 'No Settings Files found'
         }
     }
     catch
@@ -333,26 +347,33 @@ Function Group-RepositoryFile
     try
     {
         $PSModuleFiles = ConvertTo-HashTable -InputObject $_Files.'.psd1' -KeyName 'FileName'
-        Write-Verbose -Message 'Found Powershell Module Files'
-        foreach($PSModuleName in $PSModuleFiles.Keys)
+        if($PSModuleFiles -as [bool])
         {
-            if($PSModuleFiles."$PSModuleName".ChangeType -contains 'M' -or
-               $PSModuleFiles."$PSModuleName".ChangeType -contains 'A')
+            Write-Verbose -Message 'Found Powershell Module Files'
+            foreach($PSModuleName in $PSModuleFiles.Keys)
             {
-                foreach($Path in $PSModuleFiles."$PSModuleName".FullPath)
+                if($PSModuleFiles."$PSModuleName".ChangeType -contains 'M' -or
+                   $PSModuleFiles."$PSModuleName".ChangeType -contains 'A')
                 {
-                    if($Path -like "$($Path)\$($PowerShellModuleFolder)\*")
+                    foreach($Path in $PSModuleFiles."$PSModuleName".FullPath)
                     {
-                        $ReturnObj.ModulesUpdated = $True
-                        $ReturnObj.ModuleFiles += $Path
-                        break
+                        if($Path -like "$($Path)\$($PowerShellModuleFolder)\*")
+                        {
+                            $ReturnObj.ModulesUpdated = $True
+                            $ReturnObj.ModuleFiles += $Path
+                            break
+                        }
                     }
                 }
+                else
+                {
+                    $ReturnObj.CleanModules = $True
+                }
             }
-            else
-            {
-                $ReturnObj.CleanModules = $True
-            }
+        }
+        else
+        {
+            Write-Verbose -Message 'No Powershell Module Files found'
         }
     }
     catch
