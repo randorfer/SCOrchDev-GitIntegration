@@ -660,8 +660,12 @@ Function Update-GitRepository
     {
         $Exception = $_
         $ExceptionInformation = Get-ExceptionInfo -Exception $Exception
-        Switch($ExceptionInformation.Type)
+        Switch($ExceptionInformation.FullyQualifiedErrorId)
         {
+            'NativeCommandError'
+            {
+                Write-Verbose -Message "Retrieved updates $($ExceptionInformation.Message)"
+            }
             'System.Management.Automation.RemoteException'
             {
                 Write-Verbose -Message "Retrieved updates $($ExceptionInformation.Message)"
