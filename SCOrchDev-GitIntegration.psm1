@@ -396,11 +396,8 @@ Function Group-RunbooksByRepository
     ConvertTo-Hashtable -InputObject $InputObject `
                         -KeyName 'Tags' `
                         -KeyFilterScript { 
-                            Param($KeyName)
-                            if($KeyName -match 'RepositoryName:([^;]+)')
-                            {
-                                $Matches[1]
-                            }
+                            Param($Tags)
+                            if($Tags.ContainsKey('RepositoryName')) { $Tags.RepositoryName }
                         }
     Write-CompletedMessage @CompletedParameters
 }
