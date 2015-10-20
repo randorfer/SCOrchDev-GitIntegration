@@ -203,18 +203,18 @@ Function Get-GitRepositoryAssetName
     
     foreach($AssetFile in $AssetFiles)
     {
-        $VariableJSON = Get-GlobalFromFile -FilePath $AssetFile.FullName -GlobalType Variables
-        $ScheduleJSON = Get-GlobalFromFile -FilePath $AssetFile.FullName -GlobalType Schedules
-        if($VariableJSON)
+        $Variable = Get-GlobalFromFile -FilePath $AssetFile.FullName -GlobalType Variables
+        $Schedule = Get-GlobalFromFile -FilePath $AssetFile.FullName -GlobalType Schedules
+        if($Variable -as [bool])
         {
-            Foreach($VariableName in (ConvertFrom-PSCustomObject -InputObject (ConvertFrom-JSON -InputObject $VariableJSON)).Keys)
+            Foreach($VariableName in $Variable.Keys)
             {
                 $Assets.Variable += $VariableName
             }
         }
-        if($ScheduleJSON)
+        if($Schedule -as [bool])
         {
-            Foreach($ScheduleName in (ConvertFrom-PSCustomObject -InputObject (ConvertFrom-JSON -InputObject $ScheduleJSON)).Keys)
+            Foreach($ScheduleName in $Schedule.Keys)
             {
                 $Assets.Schedule += $ScheduleName
             }
@@ -262,7 +262,7 @@ Function Group-RepositoryFile
     )
     $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
     $CompletedParameters = Write-StartingMessage
-    $_Files = ConvertTo-Hashtable -InputObject $Files -KeyName FileExtension
+    $_File = ConvertTo-Hashtable -InputObject $File -KeyName FileExtension
     $ReturnObj = @{ 'ScriptFiles' = @() ;
                     'SettingsFiles' = @() ;
                     'ModuleFiles' = @() ;
@@ -274,7 +274,7 @@ Function Group-RepositoryFile
     # Process PS1 Files
     try
     {
-        $PowerShellScriptFiles = ConvertTo-HashTable -InputObject $_Files.'.ps1' -KeyName 'FileName'
+        $PowerShellScriptFiles = ConvertTo-HashTable -InputObject $_File.'.ps1' -KeyName 'FileName'
         if($PowerShellScriptFiles -as [bool])
         {
             Write-Verbose -Message 'Found Powershell Files'
@@ -283,11 +283,11 @@ Function Group-RepositoryFile
                 if($PowerShellScriptFiles."$ScriptName".ChangeType -contains 'M' -or
                    $PowerShellScriptFiles."$ScriptName".ChangeType -contains 'A')
                 {
-                    foreach($Path in $PowerShellScriptFiles."$ScriptName".FullPath)
+                    foreach($FullPath in $PowerShellScriptFiles."$ScriptName".FullPath)
                     {
-                        if($Path -like "$($Path)\$($RunbookFolder)\*")
+                        if($FullPath -like "$($Path)\$($RunbookFolder)\*")
                         {
-                            $ReturnObj.ScriptFiles += $Path
+                            $ReturnObj.ScriptFiles += $FullPath
                             break
                         }
                     }            
@@ -310,7 +310,7 @@ Function Group-RepositoryFile
     try
     {
         # Process Settings Files
-        $SettingsFiles = ConvertTo-HashTable -InputObject $_Files.'.json' -KeyName 'FileName'
+        $SettingsFiles = ConvertTo-HashTable -InputObject $_File.'.json' -KeyName 'FileName'
         if($SettingsFiles -as [bool])
         {
             Write-Verbose -Message 'Found Settings Files'
@@ -319,12 +319,12 @@ Function Group-RepositoryFile
                 if($SettingsFiles."$SettingsFileName".ChangeType -contains 'M' -or
                    $SettingsFiles."$SettingsFileName".ChangeType -contains 'A')
                 {
-                    foreach($Path in $SettingsFiles."$SettingsFileName".FullPath)
+                    foreach($FullPath in $SettingsFiles."$SettingsFileName".FullPath)
                     {
-                        if($Path -like "$($Path)\$($GlobalsFolder)\*")
+                        if($FullPath -like "$($Path)\$($GlobalsFolder)\*")
                         {
                             $ReturnObj.CleanAssets = $True
-                            $ReturnObj.SettingsFiles += $Path
+                            $ReturnObj.SettingsFiles += $FullPath
                             break
                         }
                     }
@@ -346,7 +346,7 @@ Function Group-RepositoryFile
     }
     try
     {
-        $PSModuleFiles = ConvertTo-HashTable -InputObject $_Files.'.psd1' -KeyName 'FileName'
+        $PSModuleFiles = ConvertTo-HashTable -InputObject $_File.'.psd1' -KeyName 'FileName'
         if($PSModuleFiles -as [bool])
         {
             Write-Verbose -Message 'Found Powershell Module Files'
@@ -355,12 +355,12 @@ Function Group-RepositoryFile
                 if($PSModuleFiles."$PSModuleName".ChangeType -contains 'M' -or
                    $PSModuleFiles."$PSModuleName".ChangeType -contains 'A')
                 {
-                    foreach($Path in $PSModuleFiles."$PSModuleName".FullPath)
+                    foreach($FullPath in $PSModuleFiles."$PSModuleName".FullPath)
                     {
-                        if($Path -like "$($Path)\$($PowerShellModuleFolder)\*")
+                        if($FullPath -like "$($Path)\$($PowerShellModuleFolder)\*")
                         {
                             $ReturnObj.ModulesUpdated = $True
-                            $ReturnObj.ModuleFiles += $Path
+                            $ReturnObj.ModuleFiles += $FullPath
                             break
                         }
                     }
