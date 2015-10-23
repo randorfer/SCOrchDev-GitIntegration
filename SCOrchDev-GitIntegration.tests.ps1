@@ -47,7 +47,7 @@ Describe -Tags 'VersionChecks' 'SCOrchDev-F5 GitIntegration' {
     }
 
     It 'should have all files listed in the FileList' {
-        $ModuleFiles = (Get-ChildItem -Path $here -Recurse -Exclude .git).FullName
+        $ModuleFiles = (Get-ChildItem -Path $here -Recurse -Exclude '.git').FullName | Where-Object { ($_ -notlike '*PortableGit*') -or ($_ -like '*PortableGit\bin\git.exe') }
         $FileDifferences = Compare-Object -ReferenceObject $ModuleFiles -DifferenceObject $script:manifest.FileList
         
         if (($FileDifferences -as [array]).Count -gt 0)
