@@ -12,7 +12,7 @@
 RootModule = '.\SCOrchDev-GitIntegration.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.0.17'
+ModuleVersion = '2.0.18'
 
 # ID used to uniquely identify this module
 GUID = 'd3492bd8-9bac-4605-a21b-539589a94b3b'
@@ -81,7 +81,7 @@ AliasesToExport = '*'
 ModuleList = @('SCOrchDev-GitIntegration')
 
 # List of all files packaged with this module
-FileList = @('SCOrchDev-GitIntegration.psd1', 'SCOrchDev-GitIntegration.psm1', 'SCOrchDev-GitIntegration.tests.ps1', 'LICENSE', 'README.md')
+FileList = @('SCOrchDev-GitIntegration.psd1', 'SCOrchDev-GitIntegration.psm1', 'SCOrchDev-GitIntegration.tests.ps1', 'LICENSE', 'README.md', '.\PortableGit\bin/git.exe')
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess
 # PrivateData = ''
