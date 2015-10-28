@@ -270,7 +270,7 @@ Function Group-RepositoryFile
     try
     {
         $PowerShellScriptFiles = ConvertTo-HashTable -InputObject $_File.'.ps1' -KeyName 'FileName'
-        if($PowerShellScriptFiles -as [bool])
+        if(($PowerShellScriptFiles -as [bool]) -and ($PowerShellScriptFiles.Keys -as [int]) -gt 0)
         {
             Write-Verbose -Message 'Found Powershell Files'
             foreach($ScriptName in $PowerShellScriptFiles.Keys)
@@ -306,7 +306,7 @@ Function Group-RepositoryFile
     {
         # Process Settings Files
         $SettingsFiles = ConvertTo-HashTable -InputObject $_File.'.json' -KeyName 'FileName'
-        if($SettingsFiles -as [bool])
+        if(($SettingsFiles -as [bool]) -and ($SettingsFiles.Keys -as [int]) -gt 0)
         {
             Write-Verbose -Message 'Found Settings Files'
             foreach($SettingsFileName in $SettingsFiles.Keys)
@@ -342,7 +342,7 @@ Function Group-RepositoryFile
     try
     {
         $PSModuleFiles = ConvertTo-HashTable -InputObject $_File.'.psd1' -KeyName 'FileName'
-        if($PSModuleFiles -as [bool])
+        if(($PSModuleFiles -as [bool]) -and ($PSModuleFiles.Keys -as [int]) -gt 0)
         {
             Write-Verbose -Message 'Found Powershell Module Files'
             foreach($PSModuleName in $PSModuleFiles.Keys)
