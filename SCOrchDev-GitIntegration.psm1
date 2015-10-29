@@ -253,7 +253,11 @@ Function Group-RepositoryFile
 
         [Parameter(Mandatory=$True)]
         [string]
-        $PowerShellModuleFolder
+        $PowerShellModuleFolder,
+
+        [Parameter(Mandatory=$True)]
+        [string]
+        $DSCFolder
     )
     $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
     $CompletedParameters = Write-StartingMessage
@@ -261,6 +265,8 @@ Function Group-RepositoryFile
     $ReturnObj = @{ 'ScriptFiles' = @() ;
                     'SettingsFiles' = @() ;
                     'ModuleFiles' = @() ;
+                    'DSCFiles' = @() ;
+                    'CleanDSC' = $False ;
                     'CleanRunbooks' = $False ;
                     'CleanAssets' = $False ;
                     'CleanModules' = $False ;
@@ -285,11 +291,28 @@ Function Group-RepositoryFile
                             $ReturnObj.ScriptFiles += $FullPath
                             break
                         }
+                        if($FullPath -like "$($Path)\$($DSCFolder)\*")
+                        {
+                            $ReturnObj.DSCFiles += $FullPath
+                            break
+                        }
                     }            
                 }
                 else
                 {
-                    $ReturnObj.CleanRunbooks = $True
+                    foreach($FullPath in $PowerShellScriptFiles."$ScriptName".FullPath)
+                    {
+                        if($FullPath -like "$($Path)\$($RunbookFolder)\*")
+                        {
+                            $ReturnObj.CleanRunbooks = $True
+                            break
+                        }
+                        if($FullPath -like "$($Path)\$($DSCFolder)\*")
+                        {
+                            $ReturnObj.CleanDSC = $True
+                            break
+                        }
+                    } 
                 }
             }
         }
