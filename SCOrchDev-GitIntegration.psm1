@@ -467,7 +467,7 @@ Function Find-GitRepositoryChange
     )
     
     $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
-    $CompletedParameters = Write-StartingMessage
+    $CompletedParameters = Write-StartingMessage -String "StartCommit [$StartCommit]"
     
     # Set current directory to the git repo location
     $CurrentLocation = Get-Location
