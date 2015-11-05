@@ -528,6 +528,7 @@ Function Get-GitSumboduleFileChange
     $CurrentLocation = Get-Location
     try
     {
+        $ReturnObj = @()
         $ModifiedSubmodule = Invoke-Expression -Command "$($gitExe) submodule summary $StartCommit" `
             | Where-Object { $_ -match '\* (.*) ([a-f0-9]+\.\.\.[a-f0-9]+)+' } | ForEach-Object {
                 @{$Matches[1] = $Matches[2]}
@@ -549,7 +550,7 @@ Function Get-GitSumboduleFileChange
                     if("$($File)" -Match '([a-zA-Z])\s+(.+(\..+))$')
                     {
                         $FileInfo = "$((Get-Location).Path)\$($Matches[2].Replace('/','\'))"  -as [System.IO.FileInfo]
-                        Write-Output -InputObject @{ 
+                        $ReturnObj += @{ 
                             'FullPath' = "$($FileInfo.FullName)"
                             'FileName' = $FileInfo.Name
                             'FileExtension' = $FileInfo.Extension
@@ -576,7 +577,8 @@ Function Get-GitSumboduleFileChange
     {
         Set-Location -Path $CurrentLocation
     }
-    Write-CompletedMessage @CompletedParameters
+    Write-CompletedMessage @CompletedParameters -Status ($ReturnObj | ConvertTo-Json)
+    return $ReturnObj
 }
 <#
     .Synopsis
