@@ -507,7 +507,7 @@ Function Find-GitRepositoryChange
         Set-Location -Path $CurrentLocation
     }
     Write-CompletedMessage @CompletedParameters -Status ($ReturnObj | ConvertTo-Json)
-    return $ReturnObj
+    return (ConvertTo-Json $ReturnObj)
 }
 
 <#
