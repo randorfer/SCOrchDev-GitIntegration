@@ -477,11 +477,11 @@ Function Find-GitRepositoryChange
 
         $ReturnObj = @{ 'CurrentCommit' = $CurrentCommit;
                         'Files' = @() }
-    
-        $NewCommit = (Invoke-Expression -Command "$($gitExe) rev-parse --short HEAD") -as  [string]
-        $FirstRepoCommit = (Invoke-Expression -Command "$($gitExe) rev-list --max-parents=0 HEAD") -as [string]
+        
+        $NewCommit = Get-GitCurrentCommit -Path $Path
+        $FirstRepoCommit = Get-GitInitialCommit -Path $Path
         $StartCommit = (Select-FirstValid -Value $StartCommit, $FirstRepoCommit -FilterScript { $_ -ne -1 }) -as [string]
-        $ModifiedFiles = Invoke-Expression -Command "$($gitExe) diff --name-status $StartCommit $NewCommit"
+        $ModifiedFiles = Get-GitModifiedFiles -Path $Path -StartCommit $StartCommit -NewCommit $NewCommit
         $ReturnObj = @{ 'CurrentCommit' = $NewCommit ; 'Files' = @() }
         Foreach($File in $ModifiedFiles)
         {
@@ -509,7 +509,111 @@ Function Find-GitRepositoryChange
     Write-CompletedMessage @CompletedParameters -Status ($ReturnObj | ConvertTo-Json)
     return $ReturnObj
 }
+Function Get-GitModifiedFiles
+{
+    Param(
+        [Parameter(
+            Mandatory=$true
+        )]
+        [string]
+        $Path,
 
+        [Parameter(
+            Mandatory=$true
+        )]
+        [string]
+        $StartCommit,
+
+        [Parameter(
+            Mandatory=$true
+        )]
+        [string]
+        $NewCommit
+    )
+    
+    $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    $CompletedParameters = Write-StartingMessage -Stream Debug
+    
+    # Set current directory to the git repo location
+    $CurrentLocation = Get-Location
+    try
+    {
+        Set-Location -Path $Path
+        $ModifiedFiles = Invoke-Expression -Command "$($gitExe) diff --name-status $StartCommit $NewCommit"
+    }
+    catch
+    {
+        throw
+    }
+    finally
+    {
+        Set-Location -Path $CurrentLocation
+    }
+    Write-CompletedMessage @CompletedParameters -Status ($ModifiedFiles | ConvertTo-JSON)
+    return $ModifiedFiles
+}
+Function Get-GitCurrentCommit
+{
+        Param(
+        [Parameter(
+            Mandatory=$true
+        )]
+        [string]
+        $Path
+    )
+    
+    $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    $CompletedParameters = Write-StartingMessage -Stream Debug
+    
+    # Set current directory to the git repo location
+    $CurrentLocation = Get-Location
+    try
+    {
+        Set-Location -Path $Path
+        $Commit = (Invoke-Expression -Command "$($gitExe) rev-parse --short HEAD") -as [string]
+    }
+    catch
+    {
+        throw
+    }
+    finally
+    {
+        Set-Location -Path $CurrentLocation
+    }
+    Write-CompletedMessage @CompletedParameters -Status $Commit
+    return $Commit
+}
+Function Get-GitInitialCommit
+{
+        Param(
+        [Parameter(
+            Mandatory=$true
+        )]
+        [string]
+        $Path
+    )
+    
+    $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    $CompletedParameters = Write-StartingMessage -Stream Debug
+    
+    # Set current directory to the git repo location
+    $CurrentLocation = Get-Location
+    try
+    {
+        Set-Location -Path $Path
+        $Commit = (Invoke-Expression -Command "$($gitExe) rev-list --max-parents=0 HEAD") -as [string]
+    }
+    catch
+    {
+        throw
+    }
+    finally
+    {
+        Set-Location -Path $CurrentLocation
+    }
+    Write-CompletedMessage @CompletedParameters -Status $Commit
+    return $Commit
+}
 <#
 #>
 Function Get-GitSumboduleFileChange
