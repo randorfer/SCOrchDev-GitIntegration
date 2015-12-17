@@ -1,5 +1,5 @@
 ﻿#requires -Version 3 -Modules SCOrchDev-Exception, SCOrchDev-File, SCOrchDev-Utility
-$gitEXE = "$PsScriptRoot\PortableGit\Bin\git.exe"
+$gitEXE = 'git.exe'
 
 <#
     .Synopsis
