@@ -81,7 +81,7 @@ AliasesToExport = '*'
 ModuleList = @('SCOrchDev-GitIntegration')
 
 # List of all files packaged with this module
-FileList = @('SCOrchDev-GitIntegration.psd1', 'SCOrchDev-GitIntegration.psm1', 'SCOrchDev-GitIntegration.tests.ps1', 'LICENSE', 'README.md', '.\PortableGit\bin/git.exe')
+FileList = @('SCOrchDev-GitIntegration.psd1', 'SCOrchDev-GitIntegration.psm1', 'SCOrchDev-GitIntegration.tests.ps1', 'LICENSE', 'README.md')
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess
 # PrivateData = ''
