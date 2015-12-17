@@ -481,7 +481,7 @@ Function Find-GitRepositoryChange
         $NewCommit = Get-GitCurrentCommit -Path $Path
         $FirstRepoCommit = Get-GitInitialCommit -Path $Path
         $StartCommit = (Select-FirstValid -Value $StartCommit, $FirstRepoCommit -FilterScript { $_ -ne -1 }) -as [string]
-        $ModifiedFiles = Get-GitModifiedFiles -Path $Path -StartCommit $StartCommit -NewCommit $NewCommit
+        $ModifiedFiles = Get-GitModifiedFile -Path $Path -StartCommit $StartCommit -NewCommit $NewCommit
         $ReturnObj = @{ 'CurrentCommit' = $NewCommit ; 'Files' = @() }
         Foreach($File in $ModifiedFiles)
         {
@@ -509,7 +509,7 @@ Function Find-GitRepositoryChange
     Write-CompletedMessage @CompletedParameters -Status ($ReturnObj | ConvertTo-Json)
     return $ReturnObj
 }
-Function Get-GitModifiedFiles
+Function Get-GitModifiedFile
 {
     Param(
         [Parameter(
