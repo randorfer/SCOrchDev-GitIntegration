@@ -398,7 +398,7 @@ Function Group-RepositoryFile
     {
         Write-Verbose -Message 'No Powershell Module Files found'
     }
-    Write-CompletedMessage @CompletedParameters
+    Write-CompletedMessage @CompletedParameters -Status ($ReturnObj | ConvertTo-Json)
     Return $ReturnObj
 }
 <#
@@ -438,6 +438,7 @@ Function Group-AssetsByRepository
                                 $Matches[1]
                             }
                         }
+    Write-CompletedMessage @CompletedParameters
 }
 <#
     .Synopsis
