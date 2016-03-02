@@ -218,6 +218,10 @@ Function Get-GitRepositoryAssetName
     Write-CompletedMessage @CompletedParameters
     Return $Assets
 }
+<#
+    Synopsis
+        Looks under the root Path for RepositoryName/DSC to find DSC Nodes
+#>
 Function Get-GitRepositoryDSCInformation
 {
     Param([Parameter(Mandatory=$false)][string] $Path = [string]::EmptyString)
@@ -226,10 +230,10 @@ Function Get-GitRepositoryDSCInformation
     
     $ReturnObj = New-Object -TypeName System.Collections.ArrayList
 
-    $ConfigurationFile = Get-ChildItem -Path $Path `
+    $Repository = Get-ChildItem -Path "$Path\*\DSC" -Depth 1 -File -Filter '*.ps1'
+    $ConfigurationFile = Get-ChildItem -Path "$Path\*\DSC" `
                                        -Filter '*.ps1' `
-                                       -Recurse `
-                                       -File
+                                       -Recurse
     
     foreach($_ConfigurationFile in $ConfigurationFile)
     {
@@ -431,7 +435,7 @@ Function Group-RepositoryFile
         Groups a list of Runbooks by the RepositoryName from the
         tag line
 #>
-Function Group-RunbooksByRepository
+Function Group-AutomationAssetByTaggedRepository
 {
     Param([Parameter(Mandatory=$True)] $InputObject)
     $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
@@ -444,12 +448,13 @@ Function Group-RunbooksByRepository
                         }
     Write-CompletedMessage @CompletedParameters
 }
+New-Alias -Name Group-RunbooksByRepository -Value Group-AutomationAssetByTaggedRepository
 <#
     .Synopsis
         Groups a list of Runbooks by the RepositoryName from the
         tag line
 #>
-Function Group-AssetsByRepository
+Function Group-AutomationAssetByDescriptionRepository
 {
     Param([Parameter(Mandatory=$True)] $InputObject)
     $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
@@ -465,6 +470,7 @@ Function Group-AssetsByRepository
                         }
     Write-CompletedMessage @CompletedParameters
 }
+New-Alias -Name Group-AssetsByRepository -Value Group-AutomationAssetByDescriptionRepository
 <#
     .Synopsis
         Check the target Git Repo / Branch for any updated files. 
@@ -845,4 +851,4 @@ Function Update-GitRepository
     Set-Location -Path $CurrentLocation
     Write-CompletedMessage @CompletedParameters
 }
-Export-ModuleMember -Function * -Verbose:$false -Debug:$False
+Export-ModuleMember -Function *-* -Alias * -Verbose:$false -Debug:$False
