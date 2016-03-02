@@ -218,6 +218,31 @@ Function Get-GitRepositoryAssetName
     Write-CompletedMessage @CompletedParameters
     Return $Assets
 }
+Function Get-GitRepositoryDSCInformation
+{
+    Param([Parameter(Mandatory=$false)][string] $Path = [string]::EmptyString)
+    $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    $CompletedParameters = Write-StartingMessage
+    
+    $ReturnObj = New-Object -TypeName System.Collections.ArrayList
+
+    $ConfigurationFile = Get-ChildItem -Path $Path `
+                                       -Filter '*.ps1' `
+                                       -Recurse `
+                                       -File
+    
+    foreach($_ConfigurationFile in $ConfigurationFile)
+    {
+        $ConfigurationName = Get-DSCConfigurationName -FilePath $_ConfigurationFile.FullName
+        $NodeName = Get-DSCNodeName -FilePath $_ConfigurationFile.FullName
+        Foreach($_NodeName in $NodeName)
+        {
+            $Null = $ReturnObj.Add("$($ConfigurationName).$($_NodeName)")
+        }
+    }
+    Write-CompletedMessage @CompletedParameters -Status $ReturnObj
+    Return $ReturnObj
+}
 <#
     .Synopsis 
         Groups all files that will be processed.
