@@ -238,11 +238,7 @@ Function Get-GitRepositoryDSCInformation
     foreach($_ConfigurationFile in $ConfigurationFile)
     {
         $ConfigurationName = Get-DSCConfigurationName -FilePath $_ConfigurationFile.FullName
-        $NodeName = Get-DSCNodeName -FilePath $_ConfigurationFile.FullName
-        Foreach($_NodeName in $NodeName)
-        {
-            $Null = $ReturnObj.Add("$($ConfigurationName).$($_NodeName)")
-        }
+        $Null = $ReturnObj.Add($ConfigurationName)
     }
     Write-CompletedMessage @CompletedParameters -Status $ReturnObj
     Return $ReturnObj
