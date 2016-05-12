@@ -807,7 +807,8 @@ Function Update-GitRepository
     
     try
     {
-        $initialization = Invoke-Expression -Command "$gitEXE pull"
+        $Null = Invoke-Expression -Command "$gitEXE fetch"
+        $Null = Invoke-Expression -Command "$gitEXE reset --hard origin/$Branch" 
     }
     catch
     {
@@ -832,7 +833,7 @@ Function Update-GitRepository
     
     try
     {
-        $initialization = Invoke-Expression -Command "$gitEXE submodule init"
+        $Null = Invoke-Expression -Command "$gitEXE submodule init"
     }
     catch
     {
@@ -841,7 +842,7 @@ Function Update-GitRepository
 
     try
     {
-        $initialization = Invoke-Expression -Command "$gitEXE submodule update"
+        $Null = Invoke-Expression -Command "$gitEXE submodule update"
     }
     catch
     {
